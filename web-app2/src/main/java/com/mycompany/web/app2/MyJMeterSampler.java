@@ -29,13 +29,15 @@ public class MyJMeterSampler extends AbstractJavaSamplerClient {
 
     @Override
     public Arguments getDefaultParameters() {
-        return super.getDefaultParameters();
+        Arguments defaultParameters = new Arguments();
+        defaultParameters.addArgument("memcached_servers", "localhost:11211");
+        defaultParameters.addArgument("username", "testuser");
+        defaultParameters.addArgument("password", "testpasswd");
+        return defaultParameters;
     }
 
     @Override
     public void setupTest(JavaSamplerContext context) {
-        super.setupTest(context);
-
         if (null == server || !(server.isRunning())) {
             startServer();
         }
@@ -43,13 +45,30 @@ public class MyJMeterSampler extends AbstractJavaSamplerClient {
 
     @Override
     public void teardownTest(JavaSamplerContext context) {
-        super.teardownTest(context);
+        try {
+            server.stop();
+        } catch (Exception ex) {
+            Logger.getLogger(MyJMeterSampler.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
     public SampleResult runTest(JavaSamplerContext jsc) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        SampleResult result = new SampleResult();
+        boolean success = true;
+        result.sampleStart();
 
+        //
+        // Write your test code here.
+        //
+        NewJerseyClient client = new NewJerseyClient();
+        Object response = client.getXml();
+        // do whatever with response
+        client.close();
+
+        result.sampleEnd();
+        result.setSuccessful(success);
+        return result;
     }
 
     private void startServer() {
