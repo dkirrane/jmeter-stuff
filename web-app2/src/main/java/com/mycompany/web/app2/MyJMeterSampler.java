@@ -1,6 +1,9 @@
 package com.mycompany.web.app2;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
@@ -20,7 +23,9 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
  */
 public class MyJMeterSampler extends AbstractJavaSamplerClient {
 
-    private Server server;
+    private static final ReentrantLock lock = new ReentrantLock();
+    private static Server server;
+    private static final Map<String, String> WORKID_MAP = new ConcurrentHashMap<String, String>();
 
     @Override
     public Arguments getDefaultParameters() {
@@ -44,26 +49,34 @@ public class MyJMeterSampler extends AbstractJavaSamplerClient {
     @Override
     public SampleResult runTest(JavaSamplerContext jsc) {
         throw new UnsupportedOperationException("Not supported yet.");
+
     }
 
     private void startServer() {
-
-        Handler handler = new AbstractHandler() {
-            @Override
-            public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-                response.setContentType("text/html;charset=utf-8");
-                response.setStatus(HttpServletResponse.SC_OK);
-                baseRequest.setHandled(true);
-                response.getWriter().println("<h1>Hello World</h1>");
-            }
-        };
-
-        server = new Server(8080);
-        server.setHandler(handler);
+        lock.lock();
         try {
-            server.start();
-        } catch (Exception ex) {
-            Logger.getLogger(MyJMeterSampler.class.getName()).log(Level.SEVERE, null, ex);
+            if (null != server) {
+                return;
+            }
+            Handler handler = new AbstractHandler() {
+                @Override
+                public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+                    response.setContentType("text/html;charset=utf-8");
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    baseRequest.setHandled(true);
+                    response.getWriter().println("<h1>Hello World</h1>");
+                }
+            };
+
+            server = new Server(8080);
+            server.setHandler(handler);
+            try {
+                server.start();
+            } catch (Exception ex) {
+                Logger.getLogger(MyJMeterSampler.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } finally {
+            lock.unlock();
         }
     }
 }
