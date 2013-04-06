@@ -31,7 +31,7 @@ public class GetResource1Test {
         return destination;
     }
 
-    @HttpTest(method = Method.GET, path = "/getResource1")
+    @HttpTest(method = Method.GET, path = "/getResource1", order = 1)
     @Callback(port = 9090, path = "/callback", resource = TestCallbackResource.class, timeout = 10000)
     public void testGetResource1() {
         Logger.getLogger(GetResource2Test.class.getName()).log(Level.INFO, "testGetResource1");
