@@ -41,6 +41,8 @@ public class GetAgentSampler extends AbstractJavaSamplerClient implements Serial
         String urlString = context.getParameter("URL");
         String searchFor = context.getParameter("SEARCHFOR");
 
+        System.setProperty(searchFor, searchFor);
+
         SampleResult result = new SampleResult();
         result.sampleStart(); // start stopwatch
 
